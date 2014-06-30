@@ -1,4 +1,5 @@
 apply plugin: 'android-library'
+
 buildscript {
   repositories {
     mavenCentral()
@@ -6,7 +7,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:+'
+    classpath 'com.android.tools.build:gradle:0.11.1'
   }
 }
 
@@ -17,18 +18,20 @@ repositories {
 
 dependencies {
   compile 'com.android.support:support-v4:19.1.+'
-  compile files('libs/google-play-services.jar')
+  compile 'com.google.android.gms:play-services:4.4.52'
 }
 
 android {
-  buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
-  compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
+  compileSdkVersion 19
+  buildToolsVersion "19.1.0"
+
   defaultConfig {
+    minSdkVersion 15
+    targetSdkVersion 19
     versionCode 11
     versionName '3.3.4'
-    minSdkVersion Integer.parseInt(project.ANDROID_BUILD_MIN_SDK_VERSION)
-    targetSdkVersion Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
   }
+
   sourceSets {
     main {
       manifest.srcFile 'AndroidManifest.xml'
@@ -40,10 +43,24 @@ android {
   }
 }
 
-task jar(type: Jar) {
-  from android.sourceSets.main.java
+android.libraryVariants.all { variant ->
+  def name = variant.buildType.name
+  if (name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
+    return; // Skip debug builds.
+  }
+  def task = project.tasks.create "${name}Jar", Jar
+  task.dependsOn variant.javaCompile
+  task.from variant.javaCompile.destinationDir
+  task.version android.defaultConfig.versionName
+  artifacts.add('archives', task);
 }
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '1.8'
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    version = android.defaultConfig.versionName
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives sourcesJar
 }
