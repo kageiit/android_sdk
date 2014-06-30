@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.R.bool;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -349,7 +350,7 @@ public class Util {
         return dateFormat.format(date);
     }
 
-    public static String getGpsAdid(Context context) {
+    private static Object getPlayAdvertisingInfoObject(Context context) {
         try {
             Class AdvertisingIdClientClass = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
 
@@ -359,6 +360,44 @@ public class Util {
 
             Object AdvertisingInfoObject = getAdvertisingInfoMethod.invoke(null, context);
 
+            return AdvertisingInfoObject;
+        }
+        catch (Exception e) {
+        }
+        catch (NoClassDefFoundError ncdffe) {
+        }
+
+        return null;
+
+    }
+
+    public static String getPlayAdid(Context context) {
+        try {
+
+            Object AdvertisingInfoObject = getPlayAdvertisingInfoObject(context);
+
+            Class AdvertisingInfoClass = AdvertisingInfoObject.getClass();
+
+            Method getIdMethod = AdvertisingInfoClass.getMethod("getId");
+
+            Object getIdObject = getIdMethod.invoke(AdvertisingInfoObject);
+
+            String playAdid = (String) getIdObject;
+
+            return playAdid;
+        }
+        catch (Exception e) {
+        }
+        catch (NoClassDefFoundError ncdffe) {
+        }
+
+        return null;
+    }
+
+    public static boolean isPlayTrackingEnabled(Context context) {
+        try {
+            Object AdvertisingInfoObject = getPlayAdvertisingInfoObject(context);
+
             Class AdvertisingInfoClass = AdvertisingInfoObject.getClass();
 
             Method isLimitedTrackingEnabledMethod = AdvertisingInfoClass.getMethod("isLimitAdTrackingEnabled");
@@ -367,23 +406,14 @@ public class Util {
 
             Boolean isLimitedTrackingEnabled = (Boolean) isLimitedTrackingEnabledObject;
 
-            if (isLimitedTrackingEnabled) {
-                return null;
-            }
-
-            Method getIdMethod = AdvertisingInfoClass.getMethod("getId");
-
-            Object getIdObject = getIdMethod.invoke(AdvertisingInfoObject);
-
-            String gpsAdid = (String) getIdObject;
-
-            return gpsAdid;
+            return !isLimitedTrackingEnabled;
         }
         catch (Exception e) {
         }
         catch (NoClassDefFoundError ncdffe) {
         }
 
-        return null;
+        return false;
+
     }
 }

@@ -278,8 +278,8 @@ public class ActivityHandler extends HandlerThread {
         fbAttributionId = Util.getAttributionId(context);
         userAgent = Util.getUserAgent(context);
 
-        String gpsAdid = Util.getGpsAdid(context);
-        if (gpsAdid == null) {
+        String playAdid = Util.getPlayAdid(context);
+        if (playAdid == null) {
             logger.info("Unable to get Google Play Services Advertising ID at start time");
         }
 
